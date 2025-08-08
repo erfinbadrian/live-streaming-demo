@@ -3,7 +3,8 @@ class StreamingClient {
     this.idleVideoElement = idleVideoElement;
     this.streamVideoElement = streamVideoElement;
     this.onStatusUpdate = onStatusUpdate;
-
+    //bypass
+    this.bypassIndex = 0;
     // WebRTC and streaming state
     this.peerConnection = null;
     this.pcDataChannel = null;
@@ -221,9 +222,63 @@ class StreamingClient {
       return response.body;
     };
 
-    const streamText = 'Kamu adalah Silvia,Customer Service AI untuk perumahan Sinarmas Land.';
+    const streamText = [
+      'Silvia adalah asisten virtual, jadi saya tidak memiliki pasangan. Tapi saya selalu ada di sini untuk membantu Anda. Ada yang bisa saya bantu lagi?',
+      `Berikut adalah beberapa cara pembayaran IPL yang tersedia:
+1. BCA: Melalui ATM, M-Banking, Klik BCA Individu, dan Klik BCA Bisnis.
+2. Bukopin: Melalui ATM.
+3. CIMB Niaga: Melalui m-Banking dan i-Banking.
+4. INA: Melalui m-Banking & i-Banking.
+5. Mandiri: Melalui aplikasi 'Livin' by Mandiri.
+6. Maybank: Melalui ATM.
+7. MNC: Melalui ATM.
+8. OCBC: Melalui ATM.
+9. Permata: Melalui ATM dan Mobile Client.
+10. Sinarmas: Melalui ATM dan M-Banking.
+11. Blibli: Melalui situs atau aplikasi Blibli.
+12. Gojek: Melalui Go Pulsa.
+13. Indomaret: Dengan datang ke gerai Indomaret terdekat.
+14. Shopee: Melalui aplikasi Shopee.
+15. Tokopedia: Melalui aplikasi Tokopedia.
+16. LinkAja: Melalui aplikasi LinkAja.
+Jika Anda membutuhkan informasi lebih lanjut mengenai salah satu metode pembayaran tersebut, silakan beri tahu saya!`,
+      `Untuk renovasi rumah yang memakan waktu lebih dari 7 hari, Anda memerlukan Izin Renovasi. Berikut adalah ketentuan dan dokumen yang perlu Anda lengkapi untuk pengajuan Izin Renovasi:
 
-    const activeStream = await stream(streamText);
+1. Ketentuan Umum:
+
+- Laporkan rencana renovasi kepada tetangga, RT/RW, dan paguyuban setempat.
+- Menjaga lingkungan tetap bersih.
+- Bertanggung jawab atas segala kerusakan akibat renovasi.
+- Melakukan pekerjaan renovasi sesuai dengan arahan BSD.
+- Jika renovasi di luar izin, BSD berhak menghentikan pekerjaan sementara.
+
+2. Dokumen yang Perlu Dilengkapi:
+
+- Formulir Izin Renovasi.
+- Surat Izin Lingkungan/Tetangga.
+- Formulir Asistensi.
+- KTP Pemilik.
+- NPWP Pemilik.
+- Bukti Kepemilikan (AJB/PPJB/SHM/Pengalihan Hak).
+- Gambar rencana renovasi (denah).
+- Denah awal.
+- Foto unit tampak depan.
+
+3. Ketentuan Lainnya:
+
+- Proses pengajuan membutuhkan waktu 7-14 hari kerja setelah dokumen diterima.
+- Waktu pengerjaan adalah Senin-Jumat, dan Sabtu setengah hari. Renovasi dilarang pada hari Minggu dan hari libur nasional.
+- Jika pekerja menginap di unit, maksimal hanya 2 orang dengan izin dari pengurus setempat.
+
+Kelengkapan dokumen dapat dikirimkan melalui aplikasi OneSmile yang tersedia di App Store dan Play Store.
+
+Apakah ada informasi lain yang Anda butuhkan terkait proses renovasi ini?`,
+      'Anda dapat mengirimkan kelengkapan dokumen untuk pengajuan izin renovasi melalui aplikasi OneSmile yang tersedia di App Store dan Play Store. Tidak perlu datang langsung untuk proses pengajuannya. Apakah ada hal lain yang ingin Anda ketahui lebih lanjut?',
+      'OneSmile adalah aplikasi yang dirancang untuk memudahkan penghuni perumahan Sinarmas Land dalam mengakses berbagai layanan, seperti pembayaran tagihan, pengajuan izin renovasi, booking fasilitas, dan lainnya. Aplikasi ini dapat diunduh di Play Store atau App Store. Apakah ada yang ingin Anda ketahui lebih lanjut tentang penggunaan aplikasi OneSmile?',
+      'Ya, untuk dapat menggunakan aplikasi OneSmile, Anda perlu melakukan registrasi terlebih dahulu. Registrasi dilakukan dengan mengisi data pribadi seperti nama, nomor telepon, dan alamat email. Setelah registrasi, Anda dapat menikmati berbagai fitur yang disediakan oleh aplikasi. Apakah Anda memerlukan informasi lebih lanjut mengenai cara registrasi di aplikasi OneSmile?',
+    ];
+
+    const activeStream = await stream(streamText[this.bypassIndex]);
     let i = 0;
     // Note: PCM chunks
     for await (const chunk of activeStream) {
@@ -235,6 +290,7 @@ class StreamingClient {
     }
     this.sendStreamMessage(Array.from(new Uint8Array(0)), i);
     console.log('done', i);
+    this.bypassIndex += 1;
   }
 
   // Destroy the connection
