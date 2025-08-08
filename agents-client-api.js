@@ -88,7 +88,7 @@ async function createPeerConnection(offer, iceServers) {
       return decodedMsg;
     }
     if (msg.includes('stream/started')) {
-      console.log(msg);
+      console.log(msg, decodedMsg);
       document.getElementById('msgHistory').innerHTML += `<span>${decodedMsg}</span><br><br>`;
     } else {
       console.log(msg);

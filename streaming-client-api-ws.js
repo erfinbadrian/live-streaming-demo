@@ -119,8 +119,8 @@ connectButton.onclick = async () => {
 
 const streamWordButton = document.getElementById('stream-word-button');
 streamWordButton.onclick = async () => {
-  const text = 'This is a demo of the D-ID WebSocket Streaming API with text chunks.';
-  const text2 = 'Real-time video streaming is easy with D-ID';
+  const text = 'Halooo , saya silvia, agent kamu';
+  const text2 = 'Kamu adalah Silvia,Customer Service AI untuk perumahan Sinarmas Land.';
 
   let chunks = text.split(' ');
   chunks.push('<break time="3s" />'); // Note : ssml part tags should be grouped together to be sent on the same chunk
@@ -172,7 +172,8 @@ streamAudioButton.onclick = async () => {
     console.error(errorMessage);
     return;
   }
-  async function stream(text, voiceId = '21m00Tcm4TlvDq8ikWAM') {
+  async function stream(text, voiceId = 'iWydkXKoiVtvdn4vLKp9') {
+    console.log(text, voiceId);
     const response = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream?output_format=pcm_16000`,
       {
@@ -186,8 +187,7 @@ streamAudioButton.onclick = async () => {
     return response.body;
   }
 
-  const streamText =
-    'This is a demo of the D-ID WebSocket Streaming API with audio PCM chunks. <break time="1s" /> Real-time video streaming is easy with D-ID';
+  const streamText = 'Kamu adalah Silvia,Customer Service AI untuk perumahan Sinarmas Land.';
 
   const activeStream = await stream(streamText);
   let i = 0;
@@ -324,10 +324,12 @@ function onTrack(event) {
     const stats = await peerConnection.getStats(event.track);
     stats.forEach((report) => {
       if (report.type === 'inbound-rtp' && report.kind === 'video') {
+        console.log('peerConnection', report);
         const videoStatusChanged = videoIsPlaying !== report.bytesReceived > lastBytesReceived;
 
         if (videoStatusChanged) {
           videoIsPlaying = report.bytesReceived > lastBytesReceived;
+          console.log('videoIsPlaying', JSON.stringify(report));
           onVideoStatusChange(videoIsPlaying, event.streams[0]);
         }
         lastBytesReceived = report.bytesReceived;
@@ -385,6 +387,7 @@ function onStreamEvent(message) {
 
 async function createPeerConnection(offer, iceServers) {
   if (!peerConnection) {
+    console.log(offer, iceServers);
     peerConnection = new RTCPeerConnection({ iceServers });
     pcDataChannel = peerConnection.createDataChannel('JanusDataChannel');
     peerConnection.addEventListener('icegatheringstatechange', onIceGatheringStateChange, true);
@@ -410,7 +413,7 @@ async function createPeerConnection(offer, iceServers) {
 
 function setStreamVideoElement(stream) {
   if (!stream) return;
-
+  console.log('setStreamVideoElement', stream);
   streamVideoElement.srcObject = stream;
   streamVideoElement.loop = false;
   streamVideoElement.mute = !isStreamReady;
