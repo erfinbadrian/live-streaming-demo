@@ -3,7 +3,7 @@ class StreamingClient {
     this.idleVideoElement = idleVideoElement;
     this.streamVideoElement = streamVideoElement;
     this.onStatusUpdate = onStatusUpdate;
-    
+
     // WebRTC and streaming state
     this.peerConnection = null;
     this.pcDataChannel = null;
@@ -15,7 +15,7 @@ class StreamingClient {
     this.videoIsPlaying = false;
     this.streamVideoOpacity = 0;
     this.ws = null;
-    
+
     // Set this variable to true to request stream warmup upon connection
     this.stream_warmup = true;
     this.isStreamReady = !this.stream_warmup;
@@ -23,7 +23,7 @@ class StreamingClient {
     // API configuration
     this.DID_API = null;
     this.RTCPeerConnection = null;
-    
+
     // Presenter configuration
     this.presenterInputByService = {
       talks: {
@@ -44,7 +44,7 @@ class StreamingClient {
       // Load API configuration
       const fetchJsonFile = await fetch('./api.json');
       this.DID_API = await fetchJsonFile.json();
-      
+
       if (this.DID_API.key === '🤫') {
         alert('Please put your api key inside ./api.json and restart..');
         return;
@@ -67,7 +67,7 @@ class StreamingClient {
 
       // Set presenter type
       this.PRESENTER_TYPE = this.DID_API.service === 'clips' ? 'clip' : 'talk';
-      
+
       console.log('StreamingClient initialized successfully');
     } catch (error) {
       console.error('Failed to initialize StreamingClient:', error);
@@ -266,7 +266,6 @@ class StreamingClient {
   };
 
   onIceCandidate = (event) => {
-    console.log('onIceCandidate', event);
     if (event.candidate) {
       const { candidate, sdpMid, sdpMLineIndex } = event.candidate;
       this.sendMessage(this.ws, {
@@ -301,8 +300,6 @@ class StreamingClient {
   onConnectionStateChange = () => {
     // not supported in firefox
     this.updateStatus('peer', this.peerConnection.connectionState);
-    console.log('peerConnection', this.peerConnection.connectionState);
-
     if (this.peerConnection.connectionState === 'connected') {
       this.playIdleVideo();
       /**
@@ -359,20 +356,43 @@ class StreamingClient {
     if (!event.track) return;
 
     this.statsIntervalId = setInterval(async () => {
-      const stats = await this.peerConnection.getStats(event.track);
-      stats.forEach((report) => {
-        if (report.type === 'inbound-rtp' && report.kind === 'video') {
-          console.log('peerConnection', report);
-          const videoStatusChanged = this.videoIsPlaying !== report.bytesReceived > this.lastBytesReceived;
-
-          if (videoStatusChanged) {
-            this.videoIsPlaying = report.bytesReceived > this.lastBytesReceived;
-            console.log('videoIsPlaying', JSON.stringify(report));
-            this.onVideoStatusChange(this.videoIsPlaying, event.streams[0]);
-          }
-          this.lastBytesReceived = report.bytesReceived;
+      try {
+        // Check if peer connection is still valid and connected
+        if (
+          !this.peerConnection ||
+          this.peerConnection.connectionState === 'closed' ||
+          this.peerConnection.connectionState === 'failed'
+        ) {
+          console.warn('PeerConnection is not in a valid state for getStats');
+          return;
         }
-      });
+
+        // Check if track is still active
+        if (!event.track || event.track.readyState === 'ended') {
+          console.warn('Track is not active or has ended');
+          return;
+        }
+
+        const stats = await this.peerConnection.getStats(event.track);
+        stats.forEach((report) => {
+          if (report.type === 'inbound-rtp' && report.kind === 'video') {
+            const videoStatusChanged = this.videoIsPlaying !== report.bytesReceived > this.lastBytesReceived;
+
+            if (videoStatusChanged) {
+              this.videoIsPlaying = report.bytesReceived > this.lastBytesReceived;
+              console.log('videoIsPlaying', JSON.stringify(report));
+              this.onVideoStatusChange(this.videoIsPlaying, event.streams[0]);
+            }
+            this.lastBytesReceived = report.bytesReceived;
+          }
+        });
+      } catch (error) {
+        console.warn('Error getting WebRTC stats:', error);
+        // Don't throw the error, just log it and continue
+        if (error.name === 'InvalidAccessError') {
+          console.warn('Track may have been removed or connection closed');
+        }
+      }
     }, 500);
   };
 
@@ -582,9 +602,9 @@ class StreamingClient {
 
   updateStatus(key, value) {
     if (this.onStatusUpdate) {
-      this.onStatusUpdate(prevStatus => ({
+      this.onStatusUpdate((prevStatus) => ({
         ...prevStatus,
-        [key]: value
+        [key]: value,
       }));
     }
   }
